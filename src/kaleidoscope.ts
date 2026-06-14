@@ -1097,4 +1097,278 @@ export const SCENES: Scene[] = [
       }
     },
   },
+  {
+    id: 'snowflake',
+    name: '눈송이',
+    segments: 12,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = '#04081a';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.0003;
+      const r = rand(347);
+      ctx.lineCap = 'round';
+      for (let f = 0; f < 5; f++) {
+        const seed = r();
+        const cx = (Math.sin(t * 0.3 + seed * 9) * 0.35 + 0.5) * size;
+        const cy = (Math.cos(t * 0.25 + seed * 7) * 0.35 + 0.5) * size;
+        const armLen = (0.07 + seed * 0.1) * size;
+        const rot = t * (0.4 + seed) + seed * 6;
+        const hue = 190 + seed * 60;
+        ctx.strokeStyle = hsl(hue, 90, 80, 0.85);
+        ctx.lineWidth = 1.4;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(rot);
+        for (let arm = 0; arm < 6; arm++) {
+          ctx.save();
+          ctx.rotate((arm / 6) * TAU);
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(armLen, 0);
+          ctx.stroke();
+          for (let s = 1; s <= 3; s++) {
+            const sx = (s / 4) * armLen;
+            const branch = armLen * (0.35 - s * 0.07);
+            ctx.beginPath();
+            ctx.moveTo(sx, 0);
+            ctx.lineTo(sx + branch * Math.cos(Math.PI / 3), branch * Math.sin(Math.PI / 3));
+            ctx.moveTo(sx, 0);
+            ctx.lineTo(sx + branch * Math.cos(-Math.PI / 3), branch * Math.sin(-Math.PI / 3));
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+        ctx.fillStyle = hsl(hue, 100, 90, 0.95);
+        ctx.beginPath();
+        ctx.arc(0, 0, 3, 0, TAU);
+        ctx.fill();
+        ctx.restore();
+      }
+    },
+  },
+  {
+    id: 'dna',
+    name: 'DNA',
+    segments: 6,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = '#040414';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.0008;
+      const steps = 60;
+      const amp = size * 0.18;
+      const cx = size * 0.5;
+      ctx.lineWidth = 2.4;
+      for (let strand = 0; strand < 2; strand++) {
+        const phase = strand === 0 ? 0 : Math.PI;
+        const hue = strand === 0 ? 200 : 320;
+        ctx.strokeStyle = hsl(hue, 90, 65, 0.9);
+        ctx.beginPath();
+        for (let i = 0; i <= steps; i++) {
+          const y = (i / steps) * size;
+          const x = cx + Math.sin(i * 0.3 + t + phase) * amp;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+      for (let i = 0; i < steps; i += 3) {
+        const y = (i / steps) * size;
+        const x1 = cx + Math.sin(i * 0.3 + t) * amp;
+        const x2 = cx + Math.sin(i * 0.3 + t + Math.PI) * amp;
+        const depth = (Math.sin(i * 0.3 + t) + 1) * 0.5;
+        const hue = (i * 8 + t * 60) % 360;
+        ctx.strokeStyle = hsl(hue, 90, 55 + depth * 25, 0.5 + depth * 0.4);
+        ctx.lineWidth = 1.2 + depth * 1.4;
+        ctx.beginPath();
+        ctx.moveTo(x1, y);
+        ctx.lineTo(x2, y);
+        ctx.stroke();
+      }
+    },
+  },
+  {
+    id: 'constellation',
+    name: '별자리',
+    segments: 9,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = 'rgba(2, 2, 14, 0.16)';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.0003;
+      const count = 18;
+      const r = rand(401);
+      const pts: { x: number; y: number; tw: number }[] = [];
+      for (let i = 0; i < count; i++) {
+        const seed = r();
+        const baseX = r();
+        const baseY = r();
+        pts.push({
+          x: (baseX + Math.sin(t + seed * 9) * 0.04) * size,
+          y: (baseY + Math.cos(t * 1.1 + seed * 7) * 0.04) * size,
+          tw: Math.sin(t * 4 + seed * 12) * 0.5 + 0.5,
+        });
+      }
+      ctx.strokeStyle = 'rgba(150, 200, 255, 0.4)';
+      ctx.lineWidth = 0.7;
+      for (let i = 0; i < count - 1; i++) {
+        const a = pts[i];
+        const b = pts[i + 1];
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+      }
+      for (const p of pts) {
+        const radius = 1.5 + p.tw * 3.5;
+        const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius * 4);
+        glow.addColorStop(0, `rgba(255, 255, 255, ${0.4 + p.tw * 0.6})`);
+        glow.addColorStop(0.4, `rgba(180, 200, 255, ${0.2 + p.tw * 0.3})`);
+        glow.addColorStop(1, 'rgba(120, 160, 255, 0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, radius * 4, 0, TAU);
+        ctx.fill();
+      }
+    },
+  },
+  {
+    id: 'dandelion',
+    name: '민들레',
+    segments: 15,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = 'rgba(8, 8, 22, 0.16)';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.0006;
+      const cx = size * 0.5;
+      const cy = size * 0.5;
+      const seeds = 90;
+      const r = rand(457);
+      for (let i = 0; i < seeds; i++) {
+        const seed = r();
+        const phase = (t * (0.3 + seed * 0.6) + seed) % 1;
+        const dist = phase * size * 0.5;
+        const angle = seed * TAU + Math.sin(t + seed * 4) * 0.4;
+        const x = cx + Math.cos(angle) * dist;
+        const y = cy + Math.sin(angle) * dist + phase * size * 0.05;
+        const alpha = Math.max(0, 1 - phase) * 0.9;
+        ctx.strokeStyle = `rgba(220, 230, 250, ${alpha * 0.6})`;
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        for (let k = 0; k < 6; k++) {
+          const a = (k / 6) * TAU;
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + Math.cos(a) * 4, y + Math.sin(a) * 4);
+        }
+        ctx.stroke();
+        ctx.fillStyle = `rgba(255, 240, 200, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(x, y, 1.2, 0, TAU);
+        ctx.fill();
+      }
+      const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, size * 0.08);
+      core.addColorStop(0, 'rgba(200, 180, 120, 0.9)');
+      core.addColorStop(1, 'rgba(120, 80, 40, 0)');
+      ctx.fillStyle = core;
+      ctx.beginPath();
+      ctx.arc(cx, cy, size * 0.08, 0, TAU);
+      ctx.fill();
+    },
+  },
+  {
+    id: 'iris',
+    name: '눈동자',
+    segments: 10,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = '#080614';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.0005;
+      const cx = size * 0.5;
+      const cy = size * 0.5;
+      const irisR = size * 0.4;
+      const sclera = ctx.createRadialGradient(cx, cy, irisR * 0.4, cx, cy, irisR);
+      sclera.addColorStop(0, hsl(180 + t * 60, 70, 35, 1));
+      sclera.addColorStop(0.7, hsl(220 + t * 60, 80, 25, 1));
+      sclera.addColorStop(1, hsl(260 + t * 60, 60, 12, 1));
+      ctx.fillStyle = sclera;
+      ctx.beginPath();
+      ctx.arc(cx, cy, irisR, 0, TAU);
+      ctx.fill();
+      const stripes = 64;
+      ctx.lineWidth = 1.2;
+      for (let i = 0; i < stripes; i++) {
+        const a = (i / stripes) * TAU + t * 0.3;
+        const r1 = size * 0.1;
+        const r2 = irisR * (0.85 + Math.sin(i * 0.7 + t * 2) * 0.1);
+        const hue = (180 + i * 4 + t * 60) % 360;
+        ctx.strokeStyle = hsl(hue, 80, 55, 0.6);
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
+        ctx.lineTo(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2);
+        ctx.stroke();
+      }
+      const pupilR = size * (0.07 + Math.sin(t * 1.5) * 0.025);
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(cx, cy, pupilR, 0, TAU);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.beginPath();
+      ctx.arc(cx - pupilR * 0.4, cy - pupilR * 0.4, pupilR * 0.3, 0, TAU);
+      ctx.fill();
+    },
+  },
+  {
+    id: 'web',
+    name: '거미줄',
+    segments: 12,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = '#03031a';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.0003;
+      const cx = size * 0.5;
+      const cy = size * 0.5;
+      const spokes = 16;
+      const rings = 8;
+      const maxR = size * 0.5;
+      ctx.strokeStyle = 'rgba(220, 220, 240, 0.5)';
+      ctx.lineWidth = 0.8;
+      for (let s = 0; s < spokes; s++) {
+        const a = (s / spokes) * TAU + t * 0.3;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(a) * maxR, cy + Math.sin(a) * maxR);
+        ctx.stroke();
+      }
+      for (let ring = 1; ring <= rings; ring++) {
+        const baseR = (ring / rings) * maxR;
+        ctx.beginPath();
+        for (let s = 0; s <= spokes; s++) {
+          const a = (s / spokes) * TAU + t * 0.3;
+          const sag = Math.sin(t * 2 + ring + s) * 4;
+          const r2 = baseR + sag;
+          const x = cx + Math.cos(a) * r2;
+          const y = cy + Math.sin(a) * r2;
+          if (s === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+      const r = rand(503);
+      for (let i = 0; i < 3; i++) {
+        const ring = 2 + Math.floor(r() * (rings - 2));
+        const spoke = Math.floor(r() * spokes);
+        const a = (spoke / spokes) * TAU + t * 0.3;
+        const baseR = (ring / rings) * maxR;
+        const x = cx + Math.cos(a) * baseR;
+        const y = cy + Math.sin(a) * baseR;
+        const hue = (i * 120 + t * 80) % 360;
+        const glow = ctx.createRadialGradient(x, y, 0, x, y, 12);
+        glow.addColorStop(0, hsl(hue, 100, 70, 1));
+        glow.addColorStop(1, hsl(hue, 100, 50, 0));
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(x, y, 12, 0, TAU);
+        ctx.fill();
+      }
+    },
+  },
 ];
