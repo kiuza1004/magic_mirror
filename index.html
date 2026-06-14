@@ -18,11 +18,21 @@
     <script>
       (function () {
         var box = document.getElementById('err');
+        var booted = false;
         function show(msg) { if (!box) return; box.style.display = 'block'; box.textContent = (box.textContent ? box.textContent + '\n\n' : '') + msg; }
-        window.addEventListener('error', function (e) { show('Error: ' + (e.message || e.error) + '\n' + (e.filename || '') + ':' + (e.lineno || '') + ':' + (e.colno || '')); });
-        window.addEventListener('unhandledrejection', function (e) { show('Promise rejection: ' + (e.reason && e.reason.stack ? e.reason.stack : e.reason)); });
+        window.__mmShow = show;
+        window.__mmBooted = function () { booted = true; };
+        window.addEventListener('error', function (e) {
+          show('window error\n' + (e.message || (e.error && e.error.message) || e) + '\n' + (e.filename || '') + ':' + (e.lineno || '') + ':' + (e.colno || ''));
+        }, true);
+        window.addEventListener('unhandledrejection', function (e) { show('promise rejection\n' + (e.reason && e.reason.stack ? e.reason.stack : e.reason)); });
+        var ua = navigator.userAgent;
+        setTimeout(function () {
+          if (booted) return;
+          show('TIMEOUT — 모듈 스크립트가 실행되지 않았습니다.\nUA: ' + ua + '\nlocation: ' + location.href + '\nDocument readyState: ' + document.readyState + '\nES module 지원 또는 네트워크/광고차단 확인 필요');
+        }, 4000);
       })();
     </script>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx" onerror="window.__mmShow && window.__mmShow('module script load failed (onerror): ' + this.src)"></script>
   </body>
 </html>
