@@ -5,9 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#0a0a0f" />
     <title>Magic Mirror — 만화경</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #05050a; color: #f4f4f7; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif; }
+      #root { height: 100%; }
+      #boot { position: fixed; inset: 0; display: grid; place-items: center; color: rgba(255,255,255,.55); letter-spacing: .3em; font-size: 12px; }
+      #err { position: fixed; inset: 0; padding: 24px; overflow: auto; background: #15050a; color: #ffb4b4; font: 12px ui-monospace, monospace; white-space: pre-wrap; display: none; z-index: 9999; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div id="boot">LOADING MAGIC MIRROR…</div></div>
+    <pre id="err"></pre>
+    <script>
+      (function () {
+        var box = document.getElementById('err');
+        function show(msg) { if (!box) return; box.style.display = 'block'; box.textContent = (box.textContent ? box.textContent + '\n\n' : '') + msg; }
+        window.addEventListener('error', function (e) { show('Error: ' + (e.message || e.error) + '\n' + (e.filename || '') + ':' + (e.lineno || '') + ':' + (e.colno || '')); });
+        window.addEventListener('unhandledrejection', function (e) { show('Promise rejection: ' + (e.reason && e.reason.stack ? e.reason.stack : e.reason)); });
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
