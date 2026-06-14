@@ -23,7 +23,16 @@
         window.__mmShow = show;
         window.__mmBooted = function () { booted = true; };
         window.addEventListener('error', function (e) {
-          show('window error\n' + (e.message || (e.error && e.error.message) || e) + '\n' + (e.filename || '') + ':' + (e.lineno || '') + ':' + (e.colno || ''));
+          var t = e.target || e.srcElement;
+          if (t && t !== window && t.tagName) {
+            var url = t.src || t.href || '(no src)';
+            show('resource load failed\ntag: ' + t.tagName + '\nurl: ' + url + '\ntype: ' + (t.type || '') + '\nintegrity: ' + (t.integrity || '(none)') + '\ncrossorigin: ' + (t.crossOrigin || '(none)'));
+            fetch(url, { method: 'GET', mode: 'no-cors', cache: 'no-store' })
+              .then(function (r) { show('fetch probe ok: type=' + r.type + ' status=' + r.status + ' for ' + url); })
+              .catch(function (err) { show('fetch probe FAIL: ' + (err && err.message || err) + ' for ' + url); });
+            return;
+          }
+          show('window error\n' + (e.message || (e.error && e.error.message) || JSON.stringify(e)) + '\n' + (e.filename || '') + ':' + (e.lineno || '') + ':' + (e.colno || ''));
         }, true);
         window.addEventListener('unhandledrejection', function (e) { show('promise rejection\n' + (e.reason && e.reason.stack ? e.reason.stack : e.reason)); });
         var ua = navigator.userAgent;
