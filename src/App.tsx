@@ -30,13 +30,18 @@ export default function App() {
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
-      canvas.width = Math.floor(w * dpr);
-      canvas.height = Math.floor(h * dpr);
+      const parent = canvas.parentElement;
+      const w = canvas.clientWidth || parent?.clientWidth || window.innerWidth;
+      const h = canvas.clientHeight || parent?.clientHeight || window.innerHeight;
+      const pw = Math.max(1, Math.floor(w * dpr));
+      const ph = Math.max(1, Math.floor(h * dpr));
+      if (canvas.width !== pw) canvas.width = pw;
+      if (canvas.height !== ph) canvas.height = ph;
     };
     resize();
     window.addEventListener('resize', resize);
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
 
     let raf = 0;
     let startTime = performance.now();
@@ -73,6 +78,7 @@ export default function App() {
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);
+      ro.disconnect();
     };
   }, [scene, paused]);
 

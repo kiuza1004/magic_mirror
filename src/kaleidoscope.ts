@@ -43,6 +43,7 @@ export function renderKaleidoscope(
   target.translate(cx, cy);
   target.rotate(options.spin);
 
+  const destH = radius * Math.sin(wedge) + 2;
   for (let i = 0; i < segments; i++) {
     target.save();
     target.rotate(i * wedge);
@@ -55,7 +56,7 @@ export function renderKaleidoscope(
     target.closePath();
     target.clip();
 
-    target.drawImage(source, 0, 0, source.width, source.height, 0, -radius * Math.tan(wedge / 2) - 1, radius, radius * Math.tan(wedge / 2) * 2 + 2);
+    target.drawImage(source, 0, 0, source.width, source.height, 0, 0, radius, destH);
     target.restore();
   }
 
