@@ -671,4 +671,218 @@ export const SCENES: Scene[] = [
       }
     },
   },
+  {
+    id: 'butterfly',
+    name: '나비',
+    segments: 12,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = 'rgba(6, 2, 18, 0.18)';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.0006;
+      const cx = size * 0.5;
+      const cy = size * 0.5;
+      ctx.lineWidth = 1.2;
+      for (let layer = 0; layer < 3; layer++) {
+        const offset = layer * 0.4 + t;
+        const hue = (layer * 120 + t * 60) % 360;
+        ctx.strokeStyle = hsl(hue, 90, 65, 0.75);
+        ctx.beginPath();
+        const steps = 260;
+        for (let i = 0; i <= steps; i++) {
+          const theta = (i / steps) * TAU * 6;
+          const r =
+            (Math.exp(Math.cos(theta + offset)) -
+              2 * Math.cos(4 * theta) -
+              Math.pow(Math.sin(theta / 12 + t * 0.3), 5)) *
+            size *
+            0.07;
+          const x = cx + Math.sin(theta) * r;
+          const y = cy - Math.cos(theta) * r;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+    },
+  },
+  {
+    id: 'circuit',
+    name: '회로',
+    segments: 4,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = '#03060a';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.0008;
+      const grid = 9;
+      const cell = size / grid;
+      const r = rand(127);
+      ctx.lineWidth = 1.4;
+      const traces: { x: number; y: number; dir: 0 | 1 }[] = [];
+      for (let i = 0; i < grid; i++) {
+        for (let j = 0; j < grid; j++) {
+          if (r() < 0.55) traces.push({ x: i, y: j, dir: r() < 0.5 ? 0 : 1 });
+        }
+      }
+      ctx.strokeStyle = 'rgba(80, 220, 200, 0.35)';
+      for (const tr of traces) {
+        const sx = tr.x * cell + cell * 0.5;
+        const sy = tr.y * cell + cell * 0.5;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        if (tr.dir === 0) ctx.lineTo(sx + cell, sy);
+        else ctx.lineTo(sx, sy + cell);
+        ctx.stroke();
+      }
+      for (let i = 0; i < traces.length; i++) {
+        const tr = traces[i];
+        const sx = tr.x * cell + cell * 0.5;
+        const sy = tr.y * cell + cell * 0.5;
+        const phase = (t + i * 0.13) % 1;
+        const px = tr.dir === 0 ? sx + cell * phase : sx;
+        const py = tr.dir === 1 ? sy + cell * phase : sy;
+        const hue = (i * 17 + t * 80) % 360;
+        const glow = ctx.createRadialGradient(px, py, 0, px, py, 14);
+        glow.addColorStop(0, hsl(hue, 100, 75, 1));
+        glow.addColorStop(1, hsl(hue, 100, 60, 0));
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(px, py, 14, 0, TAU);
+        ctx.fill();
+      }
+    },
+  },
+  {
+    id: 'ink',
+    name: '잉크',
+    segments: 5,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = 'rgba(248, 246, 232, 0.06)';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.0004;
+      const r = rand(199);
+      for (let i = 0; i < 8; i++) {
+        const seed = r();
+        const cycle = (t + seed) % 1.5;
+        if (cycle > 1.3) continue;
+        const cx = r() * size;
+        const cy = r() * size;
+        const maxR = size * (0.05 + r() * 0.25);
+        const radius = maxR * (1 - Math.pow(1 - cycle / 1.3, 2));
+        const alpha = (1 - cycle / 1.3) * 0.55;
+        const hue = (seed * 360 + t * 40) % 360;
+        ctx.fillStyle = hsl(hue, 70, 18, alpha);
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, TAU);
+        ctx.fill();
+        for (let drip = 0; drip < 4; drip++) {
+          const a = drip / 4 * TAU + seed * 9;
+          const dr = radius * (1 + r() * 0.4);
+          ctx.fillStyle = hsl(hue, 70, 22, alpha * 0.7);
+          ctx.beginPath();
+          ctx.arc(cx + Math.cos(a) * dr, cy + Math.sin(a) * dr, radius * 0.35, 0, TAU);
+          ctx.fill();
+        }
+      }
+    },
+  },
+  {
+    id: 'vortex',
+    name: '소용돌이',
+    segments: 14,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = 'rgba(2, 4, 14, 0.18)';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.0008;
+      const cx = size * 0.5;
+      const cy = size * 0.5;
+      const r = rand(233);
+      for (let i = 0; i < 120; i++) {
+        const seed = r();
+        const lifetime = (t * (0.4 + seed) + seed) % 1;
+        const dist = (1 - lifetime) * size * 0.5;
+        const theta = lifetime * TAU * 4 + seed * TAU + t;
+        const x = cx + Math.cos(theta) * dist;
+        const y = cy + Math.sin(theta) * dist;
+        const hue = 270 + seed * 80 + t * 40;
+        const alpha = lifetime * 0.9;
+        ctx.fillStyle = hsl(hue, 95, 65, alpha);
+        ctx.beginPath();
+        ctx.arc(x, y, 1.4 + seed * 1.8, 0, TAU);
+        ctx.fill();
+      }
+      const eye = ctx.createRadialGradient(cx, cy, 0, cx, cy, size * 0.12);
+      eye.addColorStop(0, 'rgba(0,0,0,0.95)');
+      eye.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = eye;
+      ctx.beginPath();
+      ctx.arc(cx, cy, size * 0.12, 0, TAU);
+      ctx.fill();
+    },
+  },
+  {
+    id: 'forest',
+    name: '숲',
+    segments: 6,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = '#04120a';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.0003;
+      const branch = (
+        x: number,
+        y: number,
+        angle: number,
+        len: number,
+        depth: number,
+        hueBase: number,
+      ) => {
+        if (depth === 0 || len < 3) return;
+        const x2 = x + Math.cos(angle) * len;
+        const y2 = y + Math.sin(angle) * len;
+        ctx.strokeStyle = hsl(hueBase + depth * 15, 70, 25 + depth * 8, 0.85);
+        ctx.lineWidth = depth * 0.8;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        const sway = Math.sin(t * 2 + depth) * 0.15;
+        branch(x2, y2, angle - 0.55 + sway, len * 0.72, depth - 1, hueBase);
+        branch(x2, y2, angle + 0.55 + sway, len * 0.72, depth - 1, hueBase);
+      };
+      for (let i = 0; i < 4; i++) {
+        const rootX = ((i + 0.5) / 4) * size;
+        const tilt = Math.sin(t + i) * 0.2;
+        branch(rootX, size, -Math.PI / 2 + tilt, size * 0.18, 7, 100 + i * 25);
+      }
+    },
+  },
+  {
+    id: 'stipple',
+    name: '점묘',
+    segments: 16,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = '#0a0418';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.0005;
+      const cols = 32;
+      const rows = 32;
+      const cell = size / cols;
+      for (let i = 0; i < cols; i++) {
+        for (let j = 0; j < rows; j++) {
+          const nx = i / cols;
+          const ny = j / rows;
+          const v =
+            Math.sin(nx * 5 + t) +
+            Math.cos(ny * 7 - t * 1.3) +
+            Math.sin((nx + ny) * 4 + t * 0.8);
+          const radius = (v * 0.25 + 0.6) * cell * 0.45;
+          if (radius < 0.4) continue;
+          const hue = (v * 80 + t * 50 + 200) % 360;
+          ctx.fillStyle = hsl(hue, 90, 65, 0.9);
+          ctx.beginPath();
+          ctx.arc(i * cell + cell / 2, j * cell + cell / 2, radius, 0, TAU);
+          ctx.fill();
+        }
+      }
+    },
+  },
 ];
