@@ -885,4 +885,216 @@ export const SCENES: Scene[] = [
       }
     },
   },
+  {
+    id: 'lightning',
+    name: '번개',
+    segments: 6,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = 'rgba(2, 4, 18, 0.32)';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.001;
+      const bolts = 3;
+      for (let b = 0; b < bolts; b++) {
+        const phase = (t + b * 0.45) % 1;
+        if (phase > 0.4) continue;
+        const r = rand(b * 53 + Math.floor((t + b * 0.45) / 1) * 11);
+        const startX = r() * size;
+        const alpha = (1 - phase / 0.4) * 0.9;
+        const hue = 180 + r() * 80;
+        ctx.shadowColor = hsl(hue, 100, 80, 0.9);
+        ctx.shadowBlur = 18;
+        const draw = (x: number, y: number, dx: number, dy: number, depth: number) => {
+          if (depth === 0) return;
+          const x2 = x + dx + (r() - 0.5) * size * 0.06;
+          const y2 = y + dy + (r() - 0.3) * size * 0.04;
+          ctx.strokeStyle = hsl(hue, 100, 90, alpha * (depth / 6));
+          ctx.lineWidth = depth * 0.45;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+          draw(x2, y2, dx, dy, depth - 1);
+          if (r() < 0.4 && depth > 2)
+            draw(x2, y2, dx * 0.6 + (r() - 0.5) * size * 0.05, dy * 0.6, depth - 2);
+        };
+        draw(startX, 0, 0, size * 0.16, 6);
+        ctx.shadowBlur = 0;
+      }
+    },
+  },
+  {
+    id: 'solar',
+    name: '태양',
+    segments: 16,
+    draw({ ctx, time, size }) {
+      const t = time * 0.0006;
+      const cx = size * 0.5;
+      const cy = size * 0.5;
+      const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, size * 0.7);
+      bg.addColorStop(0, '#2a0a04');
+      bg.addColorStop(1, '#04020a');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, size, size);
+      const flares = 32;
+      for (let i = 0; i < flares; i++) {
+        const a = (i / flares) * TAU + t * 0.4;
+        const len = size * (0.25 + Math.sin(t * 2 + i * 0.7) * 0.08);
+        const hue = 25 + Math.sin(t + i * 0.3) * 30;
+        const grad = ctx.createLinearGradient(cx, cy, cx + Math.cos(a) * len, cy + Math.sin(a) * len);
+        grad.addColorStop(0, hsl(hue, 100, 75, 0.85));
+        grad.addColorStop(1, hsl(hue, 100, 50, 0));
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 4 + Math.sin(t * 3 + i) * 2;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len);
+        ctx.stroke();
+      }
+      const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, size * 0.2);
+      core.addColorStop(0, '#fff6c0');
+      core.addColorStop(0.4, hsl(35, 100, 65, 1));
+      core.addColorStop(1, hsl(20, 100, 40, 0));
+      ctx.fillStyle = core;
+      ctx.beginPath();
+      ctx.arc(cx, cy, size * 0.2, 0, TAU);
+      ctx.fill();
+    },
+  },
+  {
+    id: 'interference',
+    name: '파동',
+    segments: 8,
+    draw({ ctx, time, size }) {
+      const t = time * 0.001;
+      const step = 6;
+      const cols = Math.ceil(size / step);
+      const rows = Math.ceil(size / step);
+      const s1x = size * (0.3 + Math.sin(t * 0.5) * 0.1);
+      const s1y = size * (0.4 + Math.cos(t * 0.4) * 0.1);
+      const s2x = size * (0.7 + Math.sin(t * 0.6 + 2) * 0.1);
+      const s2y = size * (0.6 + Math.cos(t * 0.5 + 1) * 0.1);
+      for (let i = 0; i < cols; i++) {
+        for (let j = 0; j < rows; j++) {
+          const x = i * step;
+          const y = j * step;
+          const d1 = Math.hypot(x - s1x, y - s1y);
+          const d2 = Math.hypot(x - s2x, y - s2y);
+          const v = Math.sin(d1 * 0.08 - t * 3) + Math.sin(d2 * 0.08 - t * 3);
+          const hue = (v * 70 + t * 60 + 200) % 360;
+          const l = 40 + Math.abs(v) * 20;
+          ctx.fillStyle = hsl(hue, 85, l);
+          ctx.fillRect(x, y, step + 1, step + 1);
+        }
+      }
+    },
+  },
+  {
+    id: 'ice',
+    name: '얼음',
+    segments: 12,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = '#040814';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.0003;
+      const r = rand(311);
+      ctx.lineJoin = 'round';
+      for (let i = 0; i < 20; i++) {
+        const seed = r();
+        const cx = (Math.sin(t * 0.3 + seed * 9) * 0.4 + 0.5) * size;
+        const cy = (Math.cos(t * 0.25 + seed * 7) * 0.4 + 0.5) * size;
+        const radius = (0.06 + seed * 0.18) * size;
+        const rot = t * (0.2 + seed * 0.5) + seed * 6;
+        const hue = 190 + seed * 40;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(rot);
+        const grad = ctx.createLinearGradient(-radius, 0, radius, 0);
+        grad.addColorStop(0, hsl(hue, 80, 70, 0.25));
+        grad.addColorStop(0.5, hsl(hue, 100, 85, 0.7));
+        grad.addColorStop(1, hsl(hue + 30, 70, 60, 0.25));
+        ctx.fillStyle = grad;
+        ctx.strokeStyle = hsl(hue, 100, 90, 0.6);
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(0, -radius);
+        ctx.lineTo(radius * 0.5, -radius * 0.2);
+        ctx.lineTo(radius, radius * 0.3);
+        ctx.lineTo(0, radius);
+        ctx.lineTo(-radius, radius * 0.3);
+        ctx.lineTo(-radius * 0.5, -radius * 0.2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+    },
+  },
+  {
+    id: 'peacock',
+    name: '공작',
+    segments: 10,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = '#021018';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.0004;
+      const cx = size * 0.5;
+      const cy = size * 0.5;
+      const rings = 4;
+      const perRing = 12;
+      for (let ring = 1; ring <= rings; ring++) {
+        const radius = (ring / rings) * size * 0.42;
+        const eyeSize = size * 0.05 * (1 - ring * 0.12);
+        for (let i = 0; i < perRing; i++) {
+          const a = (i / perRing) * TAU + t * (ring % 2 ? 1 : -1) * 0.5;
+          const x = cx + Math.cos(a) * radius;
+          const y = cy + Math.sin(a) * radius;
+          const hue = (a * 60 + ring * 40) % 360;
+          const outer = ctx.createRadialGradient(x, y, 0, x, y, eyeSize);
+          outer.addColorStop(0, hsl(hue, 90, 70, 0.9));
+          outer.addColorStop(0.5, hsl(hue + 60, 95, 50, 0.85));
+          outer.addColorStop(1, hsl(hue + 120, 80, 30, 0.3));
+          ctx.fillStyle = outer;
+          ctx.beginPath();
+          ctx.ellipse(x, y, eyeSize, eyeSize * 1.5, a + Math.PI / 2, 0, TAU);
+          ctx.fill();
+          ctx.fillStyle = hsl(hue + 180, 100, 20, 0.95);
+          ctx.beginPath();
+          ctx.arc(x, y, eyeSize * 0.35, 0, TAU);
+          ctx.fill();
+        }
+      }
+    },
+  },
+  {
+    id: 'checker',
+    name: '체크',
+    segments: 8,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = '#06061a';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.0006;
+      const cells = 12;
+      const cell = size / cells;
+      const cx = size * 0.5;
+      const cy = size * 0.5;
+      for (let i = 0; i < cells; i++) {
+        for (let j = 0; j < cells; j++) {
+          if ((i + j) % 2 !== 0) continue;
+          const x = i * cell;
+          const y = j * cell;
+          const d = Math.hypot(x + cell / 2 - cx, y + cell / 2 - cy) / size;
+          const wave = Math.sin(d * 12 - t * 3) * 0.5 + 0.5;
+          const scale = 0.45 + wave * 0.5;
+          const hue = (d * 320 + t * 80) % 360;
+          ctx.fillStyle = hsl(hue, 90, 50 + wave * 30, 0.9);
+          ctx.save();
+          ctx.translate(x + cell / 2, y + cell / 2);
+          ctx.rotate(t + d * 3);
+          ctx.fillRect(-cell * scale / 2, -cell * scale / 2, cell * scale, cell * scale);
+          ctx.restore();
+        }
+      }
+    },
+  },
 ];
