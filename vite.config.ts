@@ -3,5 +3,5 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/magic_mirror/',
+  base: process.env.VERCEL ? '/' : '/magic_mirror/',
 });
