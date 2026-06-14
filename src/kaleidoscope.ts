@@ -495,4 +495,180 @@ export const SCENES: Scene[] = [
       }
     },
   },
+  {
+    id: 'comet',
+    name: '혜성',
+    segments: 9,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = 'rgba(4, 2, 14, 0.18)';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.0009;
+      const r = rand(71);
+      ctx.lineCap = 'round';
+      for (let i = 0; i < 10; i++) {
+        const seed = r();
+        const a = t * (0.4 + seed) + seed * TAU;
+        const radius = (0.2 + seed * 0.35) * size;
+        const cx = size * 0.5 + Math.cos(a) * radius;
+        const cy = size * 0.5 + Math.sin(a) * radius;
+        const speed = 0.15 + seed * 0.2;
+        const tx = cx - Math.cos(a) * size * speed;
+        const ty = cy - Math.sin(a) * size * speed;
+        const hue = (seed * 360 + t * 80) % 360;
+        const grad = ctx.createLinearGradient(tx, ty, cx, cy);
+        grad.addColorStop(0, hsl(hue, 100, 60, 0));
+        grad.addColorStop(1, hsl(hue, 100, 75, 1));
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 3 + seed * 4;
+        ctx.beginPath();
+        ctx.moveTo(tx, ty);
+        ctx.lineTo(cx, cy);
+        ctx.stroke();
+        ctx.fillStyle = hsl(hue, 100, 85, 0.95);
+        ctx.beginPath();
+        ctx.arc(cx, cy, 3 + seed * 2, 0, TAU);
+        ctx.fill();
+      }
+    },
+  },
+  {
+    id: 'honeycomb',
+    name: '벌집',
+    segments: 6,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = '#06051a';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.0008;
+      const radius = size * 0.045;
+      const dx = radius * Math.sqrt(3);
+      const dy = radius * 1.5;
+      const cols = Math.ceil(size / dx) + 1;
+      const rows = Math.ceil(size / dy) + 1;
+      const cxBase = size * 0.5;
+      const cyBase = size * 0.5;
+      for (let row = -1; row < rows; row++) {
+        for (let col = -1; col < cols; col++) {
+          const x = col * dx + (row % 2 ? dx / 2 : 0);
+          const y = row * dy;
+          const d = Math.hypot(x - cxBase, y - cyBase) / size;
+          const pulse = Math.sin(d * 12 - t * 4) * 0.5 + 0.5;
+          const hue = (d * 280 + t * 60) % 360;
+          ctx.fillStyle = hsl(hue, 90, 35 + pulse * 35, 0.85);
+          ctx.strokeStyle = hsl(hue + 40, 100, 70, 0.6);
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          for (let k = 0; k < 6; k++) {
+            const a = (k / 6) * TAU + Math.PI / 6;
+            const px = x + Math.cos(a) * radius * (0.78 + pulse * 0.2);
+            const py = y + Math.sin(a) * radius * (0.78 + pulse * 0.2);
+            if (k === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+    },
+  },
+  {
+    id: 'spiro',
+    name: '회전초',
+    segments: 8,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = 'rgba(4, 2, 18, 0.16)';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.0004;
+      const cx = size * 0.5;
+      const cy = size * 0.5;
+      ctx.lineWidth = 1.4;
+      for (let curve = 0; curve < 4; curve++) {
+        const k = 3 + curve + Math.sin(t * 0.6 + curve) * 1.5;
+        const baseHue = (curve * 90 + t * 50) % 360;
+        ctx.beginPath();
+        const steps = 220;
+        for (let i = 0; i <= steps; i++) {
+          const theta = (i / steps) * TAU * 2;
+          const r = size * 0.32 * Math.cos(k * theta + t + curve);
+          const x = cx + Math.cos(theta + t * 0.4) * r;
+          const y = cy + Math.sin(theta + t * 0.4) * r;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = hsl(baseHue, 95, 65, 0.7);
+        ctx.stroke();
+      }
+    },
+  },
+  {
+    id: 'galaxy',
+    name: '갤럭시',
+    segments: 13,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = 'rgba(2, 2, 12, 0.22)';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.0003;
+      const cx = size * 0.5;
+      const cy = size * 0.5;
+      const arms = 3;
+      const r = rand(89);
+      for (let i = 0; i < 220; i++) {
+        const seed = r();
+        const dist = Math.pow(seed, 0.6) * size * 0.55;
+        const arm = i % arms;
+        const theta = (arm / arms) * TAU + dist * 0.018 + t + seed * 0.4;
+        const x = cx + Math.cos(theta) * dist;
+        const y = cy + Math.sin(theta) * dist;
+        const hue = 220 + dist / size * 200;
+        const ps = 0.6 + seed * 2.2;
+        ctx.fillStyle = hsl(hue, 90, 70 + seed * 20, 0.9);
+        ctx.beginPath();
+        ctx.arc(x, y, ps, 0, TAU);
+        ctx.fill();
+      }
+      const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, size * 0.18);
+      core.addColorStop(0, hsl(40 + t * 20, 100, 80, 0.6));
+      core.addColorStop(1, hsl(40 + t * 20, 100, 60, 0));
+      ctx.fillStyle = core;
+      ctx.beginPath();
+      ctx.arc(cx, cy, size * 0.18, 0, TAU);
+      ctx.fill();
+    },
+  },
+  {
+    id: 'rain',
+    name: '레인',
+    segments: 8,
+    draw({ ctx, time, size }) {
+      ctx.fillStyle = 'rgba(4, 4, 16, 0.28)';
+      ctx.fillRect(0, 0, size, size);
+      const t = time * 0.001;
+      const r = rand(101);
+      ctx.lineCap = 'round';
+      for (let i = 0; i < 36; i++) {
+        const seed = r();
+        const x = seed * size;
+        const speed = 0.4 + seed * 0.8;
+        const y = ((t * speed + seed * 3) % 1.2) * size;
+        const len = size * 0.08 * (0.6 + seed);
+        const hue = 180 + seed * 60;
+        const grad = ctx.createLinearGradient(x, y - len, x, y);
+        grad.addColorStop(0, hsl(hue, 80, 60, 0));
+        grad.addColorStop(1, hsl(hue, 90, 80, 0.9));
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1.2 + seed * 1.6;
+        ctx.beginPath();
+        ctx.moveTo(x, y - len);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        if (y > size * 0.9 && seed > 0.6) {
+          ctx.strokeStyle = hsl(hue, 90, 85, 0.5);
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(x, size * 0.95, 4 + seed * 4, Math.PI, 0);
+          ctx.stroke();
+        }
+      }
+    },
+  },
 ];
